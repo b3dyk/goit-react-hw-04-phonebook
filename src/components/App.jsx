@@ -1,5 +1,6 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { customAlphabet } from 'nanoid';
+import { useLocalStortage } from 'hooks/useLocalStorage';
 
 import { ContactList } from './ContactList/ContactList';
 import { ContactForm } from './ContactForm/ContactForm';
@@ -8,83 +9,58 @@ import css from './App.module.css';
 
 const nanoid = customAlphabet('1234567890id', 4);
 
-export class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-  };
+export const App = () => {
+  const [contacts, setContacts] = useLocalStortage('contacts', []);
+  const [filter, setFilter] = useState('');
 
-  componentDidMount() {
-    const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
-    this.setState({ contacts });
-  }
-
-  componentDidUpdate(_, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-
-  addUser = data => {
+  const addUser = data => {
     const newContact = {
       id: nanoid(),
       ...data,
     };
 
-    if (this.state.contacts.find(({ name }) => name === data.name)) {
+    if (contacts.find(({ name }) => name === data.name)) {
       alert(`${data.name} already in contacts`);
       return true;
     }
 
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, newContact],
-    }));
-    return;
+    setContacts(prevState => [...prevState, newContact]);
   };
 
-  handleDelete = id => {
-    this.setState(prevState => {
-      return {
-        contacts: prevState.contacts.filter(contact => contact.id !== id),
-      };
-    });
+  const handleDelete = id => {
+    setContacts(prevState => prevState.filter(contact => contact.id !== id));
   };
 
-  handleSearch = ({ target: { value } }) => {
-    const searchValue = value.toLowerCase();
-    this.setState({ filter: searchValue });
+  const handleSearch = ({ target: { value } }) => {
+    setFilter(value.toLowerCase());
   };
 
-  render() {
-    const { contacts, filter } = this.state;
+  const visibleContacts = contacts.filter(({ name }) =>
+    name.toLowerCase().includes(filter)
+  );
 
-    const visibleContacts = contacts.filter(({ name }) =>
-      name.toLowerCase().includes(filter)
-    );
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        color: '#122236',
+        fontFamily: 'Verdana, Geneva, Tahoma, sans-serif',
+        marginTop: '16px',
+        fontSize: '24px',
+      }}
+    >
+      <h1 className={css.mainHeading}>Phonebook</h1>
 
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: '#122236',
-          fontFamily: 'Verdana, Geneva, Tahoma, sans-serif',
-          marginTop: '16px',
-          fontSize: '24px',
-        }}
-      >
-        <h1 className={css.mainHeading}>Phonebook</h1>
+      <ContactForm addUser={addUser} />
 
-        <ContactForm addUser={this.addUser} />
+      <h2 className={css.heading}>Contacts</h2>
 
-        <h2 className={css.heading}>Contacts</h2>
+      <Filter filter={filter} onSearch={handleSearch} />
 
-        <Filter filter={filter} onSearch={this.handleSearch} />
-
-        <ContactList contacts={visibleContacts} onDelete={this.handleDelete} />
-      </div>
-    );
-  }
-}
+      <ContactList contacts={visibleContacts} onDelete={handleDelete} />
+    </div>
+  );
+};

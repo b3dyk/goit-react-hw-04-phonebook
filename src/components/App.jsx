@@ -24,11 +24,11 @@ export const App = () => {
       return true;
     }
 
-    setContacts(prevState => [...prevState, newContact]);
+    setContacts(prev => [...prev, newContact]);
   };
 
   const handleDelete = id => {
-    setContacts(prevState => prevState.filter(contact => contact.id !== id));
+    setContacts(prev => prev.filter(contact => contact.id !== id));
   };
 
   const handleSearch = ({ target: { value } }) => {

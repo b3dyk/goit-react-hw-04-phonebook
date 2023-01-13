@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { customAlphabet } from 'nanoid';
 import { useLocalStortage } from 'hooks/useLocalStorage';
 
@@ -35,8 +35,9 @@ export const App = () => {
     setFilter(value.toLowerCase());
   };
 
-  const visibleContacts = contacts.filter(({ name }) =>
-    name.toLowerCase().includes(filter)
+  const visibleContacts = useMemo(
+    () => contacts.filter(({ name }) => name.toLowerCase().includes(filter)),
+    [contacts, filter]
   );
 
   return (
